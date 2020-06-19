@@ -1,0 +1,23 @@
+# Links
+
+https://www.edureka.co/blog/backpropagation/
+https://learn-neural-networks.com/backpropagation-algorithm/
+https://page.mi.fu-berlin.de/rojas/neural/chapter/K7.pdf
+http://neuralnetworksanddeeplearning.com/chap1.html
+
+# GDB
+
+## Init
+
+ gdb ./nn
+
+## Compile
+
+g++ -g3 ./src/main.cpp ./src/nn.cpp -o nn-dbg
+
+## Run debugger
+
+gdb ./nn-dbg
+
+# git
+# https://rogerdudler.github.io/git-guide/
