@@ -1,3 +1,0 @@
-/home/borys/Work/NeuralNetworks/nn/CMakeFiles/rebuild_cache.dir
-/home/borys/Work/NeuralNetworks/nn/CMakeFiles/edit_cache.dir
-/home/borys/Work/NeuralNetworks/nn/CMakeFiles/nn.dir

@@ -4,21 +4,19 @@
 
 double sigmoid(double val) {
 
-	return ( 1 / (1 + exp(-val)) );
+	return (1 / (1 + exp(-val)) );
 }
 
 double sigmoidPrime(double val) {
 
-    return ( sigmoid(val) * (1 - sigmoid(val)) );
-
+    return (sigmoid(val) * (1 - sigmoid(val)) );
 }
 ///////////////////////////////////////////////
-///////////////// NEURON ///////////////////////
+///////////////// NEURON //////////////////////
 
 Neuron::Neuron(double val) : m_weight(1.0), m_bias(0.0) {
 
 	m_val = val; 
-
 }
 
 void Neuron::input(std::vector<Neuron *> l) {
@@ -32,7 +30,6 @@ void Neuron::input(std::vector<Neuron *> l) {
 
 	m_z = (tempSum * m_weight + m_bias);
 	m_val = (sigmoid(tempSum * m_weight + m_bias));
-
 }
 
 
@@ -48,7 +45,6 @@ Layer::Layer(uint8_t size) {
 		Neuron *n = new Neuron(0.0);
 		m_neurons.push_back(n);
 	}	
-
 }
 
 Layer::Layer(std::vector<Neuron *> l) {
@@ -57,7 +53,6 @@ Layer::Layer(std::vector<Neuron *> l) {
 	{
 		m_neurons.push_back(new Neuron(l.at(i)->output()));
 	}	
-
 }
 
 void Layer::input(std::vector <Neuron *> l) {
@@ -66,7 +61,6 @@ void Layer::input(std::vector <Neuron *> l) {
 	{
 		m_neurons.at(i)->input(l);
 	}
-
 }
 
 void Layer::print() const {
@@ -74,14 +68,14 @@ void Layer::print() const {
 	for(int i = 0; i < m_neurons.size(); i++)
 	{
 	  std::cout << "Neuron: " << i << "\t";
-	  std::cout << "Val: " << m_neurons.at(i)->getVal() << "\t";
-	  std::cout << "Weight: " << m_neurons.at(i)->getWeight() << "\t";
-	  std::cout << "Bias: " << m_neurons.at(i)->getBias() << "\n";
+	  std::cout << "Val: " << std::setprecision(3) << m_neurons.at(i)->getVal() << "\t";
+	  std::cout << "Weight: " << std::setprecision(3) <<  m_neurons.at(i)->getWeight() << "\t\n";
+//	  std::cout << "Bias: " << std::setprecision(3) << m_neurons.at(i)->getBias() << "\n";
 	}	
 
 }
 ///////////////////////////////////////////////
-////////////// NEURAL NETWORK ////////////////
+////////////// NEURAL NETWORK /////////////////
 
 NeuralNetwork::NeuralNetwork(uint8_t layerCount, std::vector <double> input , uint8_t hiddenLayerSize, std::vector <double> targetOutput) {
 
@@ -101,6 +95,15 @@ NeuralNetwork::NeuralNetwork(uint8_t layerCount, std::vector <double> input , ui
 	}	
 
 	setTargetOutput(targetOutput);
+	
+	// Set error values
+
+	for(int i = 0; i < m_layers.back()->getLayer().size(); i++)
+	{
+		m_output.push_back(0.0);
+		m_errors.push_back(0.0);
+		m_totalError = 0.0;
+	}
 }
 
 void NeuralNetwork::print() const {
@@ -121,7 +124,7 @@ void NeuralNetwork::print() const {
 		std::cout << "Total error = " << m_totalError << "\t\n";
 }
 
-void NeuralNetwork::init() {
+void NeuralNetwork::feedForward() {
 
 	// Forward propagation
 
@@ -130,36 +133,67 @@ void NeuralNetwork::init() {
 	  uint8_t prevLayer = i - 1;
 	   m_layers.at(i)->input(m_layers.at(prevLayer)->getLayer());
 	}	
+}
+
+void NeuralNetwork::errorCalc() {
 
 	// Error values calculation
-
+	
+	m_totalError = 0.0;
+	 
 	for(int i = 0; i < m_layers.back()->getLayer().size(); i++)
 	{
-		m_output.push_back(m_layers.back()->getLayer().at(i)->getVal());
-		m_errors.push_back( (pow((m_targetOutput.at(i) - m_output.at(i)), 2.0)) / m_output.size() );
+		m_output.at(i) = m_layers.back()->getLayer().at(i)->getVal();
+		m_errors.at(i) = pow((m_targetOutput.at(i) - m_output.at(i)), 2.0) / m_output.size();
 		m_totalError += m_errors.at(i);
 	}
+}
+
+void NeuralNetwork::backprop() {
 
 	// Backpropagation
 	
 	double dEdw = 0.0;
-	
-	for(int i = m_layers.size(); i > 0 ; i--)
+//	for(int i = m_layers.size(); i >= 0 ; i--)
+	for(int i = 2; i >= 0 ; i--)
 	{
-		for(int j = 0; j < m_layers.at(i)->getLayer().size(); j++)
+	//	for(int j = 0; j < m_layers.at(i)->getLayer().size(); j++) // this doesnt work
+		for(int j = 0; j <= 2; j++) // this works
 		{
-		
-			int prevLayer = i--;
+			dEdw = m_layers.at(i)->getLayer().at(j)->getVal() // Bug probalby here with (--i)
 
-			dEdw = m_layers.at(prevLayer)->getLayer().at(j)->getVal() 
-
-				* sigmoidPrime(m_layers.at(i)->getLayer().at(j)->getZ()) 
+				   * sigmoidPrime(m_layers.at(i)->getLayer().at(j)->getZ()) 
 				
-				* 2 * (m_layers.at(i)->getLayer().at(j)->getVal() - m_targetOutput.at(j)); 
- 
+				   * 2 * (m_layers.at(i)->getLayer().at(j)->getVal() - m_targetOutput.at(j)); 
+			
+			m_layers.at(i)->getLayer().at(j)->setWeight(m_layers.at(i)->getLayer().at(j)->getWeight() - getLearningRate() * dEdw);
+		}
 
+	}
+/*
+	for(int i = m_layers.size(); i >= 0 ; i--)
+	for(int i = 2; i >= 0 ; i--)
+	{
+	//	for(int j = 0; j < m_layers.at(--i)->getLayer().size(); j++) // this doesnt work
+		for(int j = 0; j <= 2; j++) // this works
+		{
+			m_layers.at(i)->getLayer().at(j)->setWeight(j);
 		}
 
 	}
 
+*/
 }
+
+void NeuralNetwork::init(uint64_t epochs) {
+
+	for(uint64_t i = 0; i < epochs; i++)
+	{
+		feedForward();
+		errorCalc();
+		backprop();
+	}
+	print();
+	std::cout << "\nEpochs: " << epochs << "\n";
+}
+///////////////////////////////////////////////

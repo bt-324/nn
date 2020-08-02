@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <iomanip>
 
 double sigmoid(double val); 
 
@@ -21,7 +22,7 @@ class Neuron {
 
 		double getVal() const { return m_val; }
 		double getWeight() const { return m_weight; }
-		double getBias() const { return m_weight; }
+		double getBias() const { return m_bias; }
 		double getZ() const { return m_z; }
 
 		void input(std::vector<Neuron *> l);
@@ -68,20 +69,27 @@ class NeuralNetwork {
 		NeuralNetwork(uint8_t layerCount, std::vector <double> input, uint8_t hiddenLayerSize, std::vector <double> targetOutput); 
 
 		void setTargetOutput(std::vector <double> targetOutput) { m_targetOutput = targetOutput; }
+		void setLearningRate(double lr) { m_learningRate = lr; } 
 
-		void init();
+		double getLearningRate() const { return m_learningRate; }
+
 		void output() const;
 		void print() const;
+		void feedForward();
+		void errorCalc();
+		void backprop();
+		void init(uint64_t epochs);
 
 		std::vector <Layer *> getLayers() const { return m_layers; }
 
 	private:
 
-		std::vector<Layer *> m_layers;
+		std::vector <Layer *> m_layers;
 		std::vector <double> m_targetOutput;
 		std::vector <double> m_output;
 		std::vector <double> m_errors;
 		double m_totalError;
+		double m_learningRate;
 };
 
 #endif
